@@ -68,7 +68,7 @@ If you had a view which did various things with pizza orders:
                         models.Topping.objects.get(name='vegetables'))
         ii.toppings.remove(models.Topping.objects.get(name='vegetables'))
 
-	models.PizzaOrder.objects.update(cooked_by = models.Chef.objects.get(name='Starr'))
+        models.PizzaOrder.objects.update(cooked_by = models.Chef.objects.get(name='Starr'))
 	...
 
 Then after view execution, your `PizzaOrderAudit` table would look like this:
