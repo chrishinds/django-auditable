@@ -1,23 +1,28 @@
 #django-auditable
 
-_django-auditable_ provides audit records for django models. The audit
- records are designed to be human readable, include many-to-many
- fields, have transaction-like semantics, and cover bulk operations
- like update and delete.  The library is designed to be as djangonic
- as possible.
+_django-auditable_ provides audit records for django models. The
+ records are designed to be tabular and human readable, include
+ many-to-many fields, have transaction-like semantics, and cover bulk
+ operations like update and delete. 
 
-## Basic Use
+## Install
 
-This repo contains the development version. Ordinarily It's best to
-install the production package *[pending release!]*
+Install the production package
 
     $ sudo pip install django-auditable
 
-Then define your models. Models which you'd like to audit, like
-`PizzaOrder`, need to subclass `auditable.Model`. To make an audit
-model, like `PizzaOrderAudit`, just add : `__metaclass__ =
-auditable.metaclass_factory(PizzaOrder)`.  You can tailor other fields
-as you wish.
+or clone this repo which contains the auditable package itself and a
+django app from which unittests can be run (`python manage.py test
+demo`).
+
+
+## Basic Use
+
+* Models which you'd like to audit, like `PizzaOrder`, need to
+subclass `auditable.Model`.  
+* To make an audit model, like `PizzaOrderAudit`, add : `__metaclass__
+= auditable.metaclass_factory(PizzaOrder)`, and any other fields you
+need.
 
     import auditable
     from django.db import models
@@ -43,35 +48,35 @@ as you wish.
         audit_row_updated_at = models.DateTimeField(editable=False, auto_now=True)
 
 
-For best results add the following to your `settings.py` file (note the order of the middleware items)
+Add the following to your `settings.py` file (this order will commit
+audit records within TransactionMiddleware)
 
     AUDITABLE_CHECKPOINTED=True
 
     MIDDLEWARE_CLASSES = (
         ...
-        'audible.AuditMiddleware',
         'django.middleware.transaction.TransactionMiddleware',
+        'audible.AuditMiddleware',
         ... )
 
 If you had a view which did various things with pizza orders:
 
     def pizzaria(request):
+    	topping = models.Topping.objects.get
         i = models.PizzaOrder(customer_name='Yoko', cooked_by = models.Chef.objects.get(name='Lennon'))
         i.save()
-        i.toppings.add(models.Topping.objects.get(name='cheese'),
-                       models.Topping.objects.get(name='more cheese'))
+        i.toppings.add(topping(name='cheese'), topping(name='more cheese'))
         i.toppings.clear()
 
         ii = models.PizzaOrder(customer_name = 'McCartney', cooked_by = models.Chef.objects.get(name='Lennon'))
         ii.save()
-        ii.toppings.add(models.Topping.objects.get(name='cheese'),
-                        models.Topping.objects.get(name='vegetables'))
-        ii.toppings.remove(models.Topping.objects.get(name='vegetables'))
+        ii.toppings.add(topping(name='cheese'), topping(name='vegetables'))
+        ii.toppings.remove(topping(name='vegetables'))
 
         models.PizzaOrder.objects.update(cooked_by = models.Chef.objects.get(name='Starr'))
 	...
 
-Then after view execution, your `PizzaOrderAudit` table would look like this:
+After view execution, the `PizzaOrderAudit` table might resemble:
 
     $ ./manage.py dbshell
     demo=# SELECT * FROM demo_pizzaorderaudit;

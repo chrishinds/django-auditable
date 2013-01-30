@@ -98,8 +98,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'demo_project.demo.auditable.Middleware',
     'django.middleware.transaction.TransactionMiddleware',
+    'auditable.Middleware',
 )
 
 ROOT_URLCONF = 'demo_project.urls'

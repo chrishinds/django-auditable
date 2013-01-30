@@ -1,18 +1,6 @@
 import auditable
 from django.db import models
 
-
-# --------------- demo of old style ------------------------------------
-
-#class MyModel(models.Model):
-#    my_field = models.CharField(u'Foobar', max_length=10, blank=True)
-
-#MyModel_Audit = auditmetaclass.audit_factory(MyModel, [], 'MyModel_Audit')
-
-
-# ---------------- demo of new style ------------------------------------
-
-
 #Pizza models
 
 class Chef(models.Model):
@@ -34,6 +22,9 @@ class PizzaOrder(auditable.Model):
     customer_name = models.CharField(u'Baz', max_length=255, blank=False)
     cooked_by = models.ForeignKey(Chef, null=True)
     toppings = models.ManyToManyField(Topping)
+
+    class Meta:
+        app_label='demo'
 
 class Larder(auditable.Model):
     ingredient = models.CharField(max_length=255)

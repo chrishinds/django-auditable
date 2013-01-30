@@ -696,5 +696,14 @@ class Auditable(TestCase):
 
     @override_settings(AUDITABLE_CHECKPOINTED=True)
     def test_middleware_checkpoints(self):
-        pass
-        # not quite finishedself.client()
+        """
+        Tests that the middleware is correctly checkpointing requests
+        """
+        self.client.get('/one')
+        self.client.get('/two')
+        expected = [ [1, 1, u'insert', u'Yoko', u'1: Starr', False, u"[u'cheese', u'more cheese']"], 
+                     [2, 2, u'insert', u'McCartney', u'2: Lennon', False, u"[u'cheese', u'vegetables']"], 
+                     [3, 2, u'update', u'Harrison', u'1: Starr', False, u"[u'cheese', u'more cheese']"], 
+                     [4, 1, u'update', u'Yoko', u'1: Starr', False, u'[]']]
+        self.assertEqual(self.list_audits(), expected)
+        

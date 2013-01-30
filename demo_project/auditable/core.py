@@ -1,44 +1,10 @@
 from django.db import models
 from django.conf import settings
-import django.dispatch
+
+from models import Manager as AuditableManager, bulk_delete, bulk_update
 
 
 class AuditableException(Exception): pass
-
-bulk_update = django.dispatch.Signal(providing_args=["instance"])
-bulk_delete = django.dispatch.Signal(providing_args=["instance"])
-
-class QuerySet(models.query.QuerySet):
-    def delete(self, *args, **kwargs):
-        #copy the queryset
-        qs = self.all()
-        #execute the update
-        super(QuerySet, self).delete(*args, **kwargs)
-        for instance in qs:
-            bulk_delete.send_robust(self.model, instance=instance)
-
-    def update(self, *args, **kwargs):
-        #copy the queryset
-        qs = self.all()
-        #execute the update
-        rows = super(QuerySet, self).update(*args, **kwargs)
-        for instance in qs:
-            bulk_update.send_robust(self.model, instance=instance)
-        #return the original update result
-        return rows
-
-
-class Manager(models.Manager):
-    def get_query_set(self):
-        return QuerySet(self.model, using=self._db)
-
-
-class Model(models.Model): 
-    class Meta:
-        abstract = True
-
-    objects = Manager()
-
 
 def _do_audit(AuditModel, instance, operation):
     audit = AuditModel(audit_instance = unicode(instance.pk),
@@ -89,8 +55,8 @@ def metaclass_factory(model_to_audit, exclude={}):
 
             #examine fields to ensure any Manager is also an AuditableManager
             for attr_name in attrs:
-                if isinstance(attrs[attr_name], models.Manager) and not isinstance(attrs[attr_name], Manager):
-                    raise AuditableException("Manager field '%s' of AuditableModel '%s' is not also an audible.Manager" % (attr_name, name))
+                if isinstance(attrs[attr_name], models.Manager) and not isinstance(attrs[attr_name], AuditableManager):
+                    raise AuditableException("Manager field '%s' of AuditableModel '%s' is not also an audible.models.Manager" % (attr_name, name))
 
             #the following fields are always added to audit models
             attrs['audit_instance_row_operation'] = models.CharField(max_length=16, blank=False, editable=False)
@@ -272,5 +238,6 @@ class Middleware(object):
             raise AuditableException('AUDITABLE_CHECKPOINTED must be set True in settings.py before auditable.Middleware can be used within this application')
         clear()
 
-    def process_response(self, request):
+    def process_response(self, request, response):
         checkpoint()
+        return response
