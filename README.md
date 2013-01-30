@@ -12,8 +12,8 @@ Install the production package
     $ sudo pip install django-auditable
 
 or clone this repo which contains the auditable package itself and a
-django app from which unittests can be run (`python manage.py test
-demo`).
+django app from which unittests can be run: `python manage.py test
+demo`.
 
 
 ## Basic Use
@@ -23,6 +23,8 @@ subclass `auditable.Model`.
 * To make an audit model, like `PizzaOrderAudit`, add : `__metaclass__
 = auditable.metaclass_factory(PizzaOrder)`, and any other fields you
 need.
+
+<!-- boing -->
 
     import auditable
     from django.db import models
@@ -48,8 +50,8 @@ need.
         audit_row_updated_at = models.DateTimeField(editable=False, auto_now=True)
 
 
-Add the following to your `settings.py` file (this order will commit
-audit records within TransactionMiddleware)
+Add the following to your `settings.py` file (this middleware order
+will commit audit records within TransactionMiddleware)
 
     AUDITABLE_CHECKPOINTED=True
 
@@ -59,7 +61,7 @@ audit records within TransactionMiddleware)
         'audible.AuditMiddleware',
         ... )
 
-If you had a view which did various things with pizza orders:
+If you had a view which did various absurd things with pizza orders:
 
     def pizzaria(request):
     	topping = models.Topping.objects.get
